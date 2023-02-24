@@ -1,11 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <termios.h>
 
 
 int height = 30, width = 30;
 int gameover, score, flag;
 int snakex, snakey, foodx, foody;
+
+
+void set_noncanonical_mode() {
+    struct termios tty_attr;
+    tcgetattr(STDIN_FILENO, &tty_attr);
+    tty_attr.c_lflag &= ~(ICANON | ECHO);
+    tty_attr.c_cc[VMIN] = 1;
+    tty_attr.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty_attr);
+}
 
 
 
@@ -39,7 +50,8 @@ void draw(){
 }
 
 void setup(){
-    
+    set_noncanonical_mode();
+
     // to randomly place the food anywhere on the board, within boundaries
     // to handle game state, 
     gameover = 0;
@@ -102,7 +114,7 @@ void logic(){
             break;
     }
 
-    if(snakex < 0 || snakex > height || snakey < 0 && snakey > width){
+    if(snakex < 0 || snakex > height || snakey < 0 || snakey > width){
         gameover = 1;
     }
 
